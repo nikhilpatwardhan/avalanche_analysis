@@ -4,9 +4,11 @@ import requests as r
 import logging
 
 BASE_URL = 'https://utahavalanchecenter.org'
-AVALANCHES_URL_SUFFIX = '/avalanches/fatalities'
+AVALANCHES_URL_SUFFIX = '/avalanches/fatalities?page='
 
 HEADERS = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0'}
+
+logger = logging.getLogger(__name__)
 
 
 def get_overview_data():
@@ -14,22 +16,25 @@ def get_overview_data():
     Scrapes the overview page
     :return: list of dicts
     """
-    req = r.get(BASE_URL + AVALANCHES_URL_SUFFIX, headers=HEADERS)
-    data = req.text
-    soup = BeautifulSoup(data, features="html.parser")
-
-    content = soup.findAll('div', {'class': 'view-content'})[0]
-    trs = content.find_all('tr')
     res = []
+    for page in range(1, 5):
+        page_url = BASE_URL + AVALANCHES_URL_SUFFIX + str(page)
+        logger.info('Scraping page %d', page)
+        req = r.get(page_url, headers=HEADERS)
+        data = req.text
+        soup = BeautifulSoup(data, features="html.parser")
 
-    for tr in trs:
-        tds = tr.find_all('td')
-        if not tds:
-            continue
+        content = soup.findAll('div', {'class': 'view-content'})[0]
+        trs = content.find_all('tr')
 
-        res_dict = _parse_overview_tds(tds)
-        if res_dict:
-            res.append(res_dict)
+        for tr in trs:
+            tds = tr.find_all('td')
+            if not tds:
+                continue
+
+            res_dict = _parse_overview_tds(tds)
+            if res_dict:
+                res.append(res_dict)
 
     return res
 
@@ -78,4 +83,4 @@ if __name__ == '__main__':
     for ov_dict in ov_data:
         res.append(get_avalanche_detail(ov_dict))
     df = pd.DataFrame(res)
-    df.to_csv("avalanche_data.csv")
+    df.to_csv("data/avalanche_data.csv")
