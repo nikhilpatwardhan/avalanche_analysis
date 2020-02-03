@@ -8,6 +8,7 @@ AVALANCHES_URL_SUFFIX = '/avalanches/fatalities?page='
 
 HEADERS = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0'}
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -74,6 +75,7 @@ def get_avalanche_detail(ov_dict):
         else:
             ov_dict[key] = div.text
 
+    logger.debug('Read: %s keys', ov_dict.keys())
     return ov_dict
 
 
@@ -81,6 +83,7 @@ if __name__ == '__main__':
     ov_data = get_overview_data()
     res = []
     for ov_dict in ov_data:
+        logger.info('Scraping %s', ov_dict['url'])
         res.append(get_avalanche_detail(ov_dict))
     df = pd.DataFrame(res)
     df.to_csv("data/avalanche_data.csv")
