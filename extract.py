@@ -67,13 +67,13 @@ def get_avalanche_detail(ov_dict):
 
     key = ''
     for i, div in enumerate(divs):
-        if div.text == 'Accident and Rescue Summary':
-            break
-
-        if i % 2 == 0:
+        if 'field-label' in div.attrs.get('class', []) and div.text:
             key = div.text
-        else:
-            ov_dict[key] = div.text
+
+        elif key:
+            val = None if not div.text or all(x == '\n' for x in div.text) else div.text
+            ov_dict[key] = val
+            key = ''
 
     logger.debug('Read: %s keys', ov_dict.keys())
     return ov_dict
